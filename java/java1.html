@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>initCradle — Introduction to Java</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy:         #0F1729;
+            --navy-mid:     #1a2540;
+            --accent:       #3B7FFF;
+            --accent-soft:  rgba(59,127,255,0.10);
+            --text-primary: #0D1B2E;
+            --text-body:    #2C3E52;
+            --text-muted:   #6B7F96;
+            --border:       rgba(15,23,41,0.10);
+            --sidebar-w:    260px;
+            --navbar-h:     64px;
+            --radius:       10px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Sora', sans-serif;
+            font-size: 15px;
+            line-height: 1.85;
+            color: var(--text-body);
+            letter-spacing: 0.05px;
+            /* ── Preserved background spec ── */
+            background-color: #cce6ff;
+            background-image: url("images/inticradle2-removebg-preview.png");
+            background-size: 40px 40px;
+            background-repeat: repeat;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.90);
+            z-index: -1;
+        }
+
+        /* ── Progress bar ── */
+        #progress-bar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), #7ab4ff);
+            z-index: 1000;
+            transition: width 0.08s linear;
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: var(--navbar-h);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            background: rgba(255,255,255,0.75);
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 1px 16px rgba(15,23,41,0.06);
+        }
+
+        .navbar-left { display: flex; align-items: center; gap: 14px; }
+
+        .logo img { height: 65px; object-fit: contain; }
+
+        .course-badge {
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            background: var(--accent-soft);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(59,127,255,0.18);
+        }
+
+        .navbar-right { display: flex; align-items: center; gap: 18px; }
+
+        .nav-link {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .nav-link:hover { color: var(--text-primary); }
+
+        .profile-icon img {
+            height: 35px; width: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(15,23,41,0.12);
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .profile-icon img:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        /* ── Layout ── */
+        .main { display: flex; flex: 1; }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            min-height: calc(100vh - var(--navbar-h));
+            position: sticky;
+            top: var(--navbar-h);
+            align-self: flex-start;
+            padding: 30px 18px 30px 20px;
+            background: var(--navy);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            overflow-y: auto;
+        }
+
+        .sidebar-label {
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.28);
+            padding: 0 10px;
+            margin-bottom: 12px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.50);
+            font-size: 13px;
+            font-weight: 400;
+            padding: 9px 10px;
+            border-radius: 8px;
+            border-left: 2px solid transparent;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .sidebar a .ch-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: rgba(255,255,255,0.22);
+            min-width: 18px;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.85);
+        }
+
+        .sidebar a.active {
+            background: rgba(59,127,255,0.14);
+            color: #fff;
+            border-left-color: var(--accent);
+            font-weight: 500;
+        }
+        .sidebar a.active .ch-num { color: var(--accent); }
+
+        .sidebar-hr {
+            height: 1px;
+            background: rgba(255,255,255,0.06);
+            margin: 14px 0;
+            border: none;
+        }
+
+        .sidebar-foot {
+            margin-top: auto;
+            padding-top: 16px;
+            font-size: 11.5px;
+            color: rgba(255,255,255,0.18);
+            line-height: 1.5;
+            padding: 0 10px;
+        }
+
+        /* ── Content ── */
+        .content-wrap {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding: 52px 44px 88px;
+        }
+
+        .content {
+            width: 100%;
+            max-width: 740px;
+        }
+
+        /* Chapter header */
+        .ch-header {
+            margin-bottom: 16px;
+            padding-bottom: 0;
+        }
+
+        .ch-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .ch-tag {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        
+
+        .ch-label {
+            font-size: 10.5px;
+            font-weight: 500;
+            letter-spacing: 1.1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .ch-header h1 {
+            font-family: 'Lora', serif;
+            font-size: 34px;
+            font-weight: 600;
+            line-height: 1.2;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+        }
+
+        .ch-header .subtitle {
+            margin-top: 14px;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 300;
+            max-width: 560px;
+            
+            line-height: 1.7;
+            text-align: left;
+        }
+
+        /* Section headings */
+        .content h2 {
+            font-family: 'Instrument Serif', serif;
+            font-size: 27px;
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-top: 52px;
+            margin-bottom: 14px;
+            line-height: 1.28;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .content h2::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            min-width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, var(--accent), #88bbff);
+            border-radius: 2px;
+        }
+
+        .content h3 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 16.5px; font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 36px; margin-bottom: 10px;
+            letter-spacing: 0.1px;
+        }
+
+        .content h2:first-of-type {
+            margin-top: 0;
+        }
+        .content p {
+            font-size: 16.5px;
+            font-family: 'Sora', sans-serif;
+            color: var(--text-body);
+            margin-bottom: 18px;
+            line-height: 1.82;
+            text-align: justify;
+            hyphens: auto;
+        }
+
+        .content ul, .content ol {
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        .content li {
+            font-size: 16.5px;
+            font-family: 'Sora', sans-serif;
+            color: var(--text-body);
+            line-height: 1.82;
+            margin-bottom: 7px;
+            text-align: justify;
+            hyphens: auto;
+        }
+
+        .content strong, .content b {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .content a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(59,127,255,0.28);
+            transition: border-color 0.2s;
+        }
+        .content a:hover { border-color: var(--accent); }
+
+        /* Callout */
+        .callout {
+            background: linear-gradient(130deg, rgba(59,127,255,0.07), rgba(59,127,255,0.02));
+            border: 1px solid rgba(59,127,255,0.18);
+            border-left: 3px solid var(--accent);
+            border-radius: var(--radius);
+            padding: 18px 22px;
+            margin: 28px 0;
+        }
+        .callout-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        .callout p { font-size: 14.5px; margin-bottom: 0; color: var(--text-body); text-align: left; }
+
+        /* Page nav */
+        .page-nav {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 60px;
+            padding-top: 28px;
+            border-top: 1px solid var(--border);
+        }
+
+        .page-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            padding: 14px 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(8px);
+            transition: all 0.2s;
+        }
+        .page-nav a:hover {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+        }
+        .page-nav a .nav-dir {
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 2px;
+        }
+        .page-nav a .nav-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .page-nav-arrow { font-size: 20px; color: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <div id="progress-bar"></div>
+
+    <nav class="navbar">
+        <div class="navbar-left">
+            <div class="logo">
+                <img src="images/intiCradletext-removebg-preview.png" alt="initCradle">
+            </div>
+            <span class="course-badge">Java Course</span>
+        </div>
+        <div class="navbar-right">
+            <a href="#" class="nav-link">Dashboard</a>
+            <a href="#" class="nav-link">Resources</a>
+            <div class="profile-icon">
+                <img src="images/profile.jpg" alt="Profile">
+            </div>
+        </div>
+    </nav>
+
+    <div class="main">
+
+        <aside class="sidebar">
+            <p class="sidebar-label">Course Chapters</p>
+
+            <a href="java1.html" class="active">
+                <span class="ch-num">01</span>Introduction
+            </a>
+            <a href="java2.html">
+                <span class="ch-num">02</span>Java's Magic
+            </a>
+            <a href="chapter3.html">
+                <span class="ch-num">03</span>Chapter 3
+            </a>
+            <a href="chapter4.html">
+                <span class="ch-num">04</span>Chapter 4
+            </a>
+
+            <hr class="sidebar-hr">
+
+            <p class="sidebar-foot">initCradle · Java Track</p>
+        </aside>
+
+        <div class="content-wrap">
+            <article class="content">
+
+                <header class="ch-header">
+                    <div class="ch-meta">
+                        <span class="ch-tag">Chapter 01</span>
+                        <span class="ch-label">Introduction</span>
+                    </div>
+                    <h1>The Origins of Java</h1>
+                    <p class="subtitle">Where Java came from, the problems it was built to solve, and why it remains one of the world's most important programming languages.</p>
+                </header>
+
+                <h2>Introduction</h2>
+                <p>When the chronicle of computer languages is written, the following will be said: B led to C, C evolved into C++, and C++ set the stage for Java. Computer language innovation and development occurs for two fundamental reasons:</p>
+                <ul>
+                    <li>To adapt to changing environments and uses</li>
+                    <li>To implement refinements and improvements in the art of programming</li>
+                </ul>
+                <p>Java is related to C++, which is a direct descendant of C. Much of the character of Java is inherited from these two languages — from C, Java derives its syntax, and many of Java's object-oriented features were influenced by C++.</p>
+                <p>The trouble with C and C++ (and most other languages) is that they are designed to be compiled for a specific target. Although it is possible to compile a C++ program for just about any type of CPU, doing so requires a full C++ compiler targeted for that CPU. Compilers are expensive and time-consuming to create. An easier and more cost-efficient solution was needed. In an attempt to find such a solution, Gosling and others began work on a portable, platform-independent language that could produce code to run on a variety of CPUs under differing environments. This effort ultimately led to the creation of <strong>Java</strong>.</p>
+
+                <h2>Applets and Applications</h2>
+                <p>Java can be used to create two types of programs: <strong>applications</strong> and <strong>applets</strong>. An application is a program that runs on your computer, under the operating system of that computer.</p>
+                <p>An applet is an application designed to be transmitted over the Internet and executed by a Java-compatible Web browser — a tiny Java program dynamically downloaded across the network, just like an image, sound file, or video clip. The important difference is that an applet is an intelligent program, not just an animation or media file. It can react to user input and change dynamically, rather than just looping the same content.</p>
+
+                <h2>Security and Portability</h2>
+                <p>Every time you download a "normal" program, you risk viral infection. When you use a Java-compatible Web browser, however, you can safely download Java applets without fear of viral infection or malicious intent. Java achieves this protection by confining a Java program to the Java execution environment and not allowing it access to other parts of the computer.</p>
+
+                <div class="callout">
+                    <p class="callout-label">Up Next</p>
+                    <p>The mechanism that ensures security also enables portability. Discover exactly how this works in <a href="java2.html">Chapter 02 — Java's Magic</a>.</p>
+                </div>
+
+                <p>Many types of computers and operating systems are in use throughout the world — and many are connected to the Internet. For programs to be dynamically downloaded to all the various types of platforms, some means of generating portable executable code is needed. Java's solution to these two problems is both elegant and efficient.</p>
+
+                <nav class="page-nav">
+                    <a href="java2.html">
+                        <div>
+                            <span class="nav-dir">Next Chapter</span>
+                            <span class="nav-title">Java's Magic</span>
+                        </div>
+                        <span class="page-nav-arrow">→</span>
+                    </a>
+                </nav>
+
+            </article>
+        </div>
+
+    </div>
+
+    <script>
+        const bar = document.getElementById('progress-bar');
+        window.addEventListener('scroll', () => {
+            const h = document.documentElement.scrollHeight - window.innerHeight;
+            bar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+        });
+    </script>
+
+</body>
+</html>
